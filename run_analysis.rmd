@@ -1,0 +1,229 @@
+
+# CodeBook For run_analysis Function.
+
+## Description
+
+The purpose of this function is to clean the data coming from the accelerometers from the Samsung Galaxy S smartphone.
+
+## Usage
+
+run_analysis(folderpath="~")
+
+## Arguments
+
+Argument               | Description
+-----------------------|--------------------------------------
+folderPath             | The default value for "folderPath" is the default working director, but you can provide it with the required path of the folderthat contains all the required files.
+
+## Steps to reproduce this project
+1. Open the R script run_analysis.r using RStudion.
+2. Call the function run_analysis() and provide it the path for the folder "UCI HAR Dataset" or you can put the folder in your defualt working directory and it will reach it directly (Note: Default Directory works only with Linux users)
+3. Optional for Mac/Windows Users
+   + Open the R script run_analysis.r using a text editor.
+   + edit the argument for "run_analysis()" function with the folder path of the "UCI HAR Dataset" folder
+   
+## Description of Data
+
+The features selected for this database come from the accelerometer and gyroscope 3-axial raw signals TimeAcc-XYZ and TimeGyro-XYZ. These time domain signals (prefix 't' to denote time) were captured at a constant rate of 50 Hz. Then they were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise. Similarly, the acceleration signal was then separated into body and gravity acceleration signals (TimeBodyAcc-XYZ and TimeGravityAcc-XYZ) using another low pass Butterworth filter with a corner frequency of 0.3 Hz. 
+
+Subsequently, the body linear acceleration and angular velocity were derived in time to obtain Jerk signals (TimeBodyAccJerk-XYZ and TimeBodyGyroJerk-XYZ). Also the magnitude of these three-dimensional signals were calculated using the Euclidean norm (TimeBodyAccMag, TimeGravityAccMag, TimeBodyAccJerkMag, TimeBodyGyroMag, TimeBodyGyroJerkMag). 
+
+Finally a Fast Fourier Transform (FFT) was applied to some of these signals producing fBodyAcc-XYZ, fBodyAccJerk-XYZ, FrequencyBodyGyro-XYZ, FrequencyBodyAccJerkMag, FrequencyBodyGyroMag, FrequencyBodyGyroJerkMag.
+
+These signals were used to estimate variables of the feature vector for each pattern:  
+'-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
+
+* TimeBodyAcc-XYZ
+* TimeGravityAcc-XYZ
+* TimeBodyAccJerk-XYZ
+* TimeBodyGyro-XYZ
+* TimeBodyGyroJerk-XYZ
+* TimeBodyAccMag
+* TimeGravityAccMag
+* TimeBodyAccJerkMag
+* TimeBodyGyroMag
+* TimeBodyGyroJerkMag
+* FrequencyBodyAcc-XYZ
+* FrequencyBodyAccJerk-XYZ
+* FrequencyBodyGyro-XYZ
+* FrequencyBodyAccMag
+* FrequencyBodyAccJerkMag
+* FrequencyBodyGyroMag
+* FrequencyBodyGyroJerkMag
+
+
+### Variable list and descriptions
+
+Variable name       |           	Description
+--------------------|-----------------------------------------
+subject 	        | ID the subject who performed the activity for each window sample. Its range is from 1 to 30.
+activityName	    | Activity name
+activityNumber      | Acitivity Number that refers to an Activity name
+Mean()              | Mean value
+SD()                | Standard deviation
+mad()               | Median absolute deviation 
+max()               | Largest value in array
+min()               | Smallest value in array
+sma()               | Signal magnitude area
+energy()            | Energy measure. Sum of the squares divided by the number of values. 
+iqr()               | Interquartile range 
+entropy()           | Signal entropy
+arCoeff()           | Autorregresion coefficients with Burg order equal to 4
+correlation()       | correlation coefficient between two signals
+maxInds()           | index of the frequency component with largest magnitude
+meanFreq()          | Weighted average of the frequency components to obtain a mean frequency
+skewness()          | skewness of the frequency domain signal 
+kurtosis()          | kurtosis of the frequency domain signal 
+bandsEnergy()       |Energy of a frequency interval within the 64 bins of the FFT of each window.
+angle()             | Angle between to vectors.
+
+### Dataset structure
+
+```{r} 
+str(FinalData)
+```
+
+## The transformation process for cleaning the primary data
+
+
+### reading Data 
+
+* First we started reading data from files:
+1. train/X_train
+2. test/X_test
+3. train/subject_train
+4. train/y_train
+5. test/subject_test
+6. test/y_test
+7. features
+
+```{r eval=FALSE} 
+
+X_train <- read.table( paste(folderPath,"/train/X_train.txt", sep = ""))
+    X_test <- read.table(paste(folderPath,"/test/X_test.txt", sep = ""))
+    Subject_Train <- read.table(paste(folderPath,"/train/subject_train.txt", sep = ""))
+    Y_train <- read.table(paste(folderPath,"/train/y_train.txt", sep = ""))
+    Subject_Test <- read.table(paste(folderPath,"/test/subject_test.txt", sep = ""))
+    Y_test <- read.table(paste(folderPath,"/test/y_test.txt", sep = ""))
+    features <- read.table(paste(folderPath,"/features.txt", sep = ""))
+    ColumnsNames <- as.array.default(features$V2) #we read in variables names
+    ColumnsNames <- as.character(ColumnsNames)
+
+```
+
+### Extracting required columns Names
+
+* At the Coming step we extract the needed columns Names that contains "mean" or "std"
+
+```{r eval=FALSE}
+
+    #### In the Coming steps we extract the needed columns
+    #### that contains "mean" or "std"
+    counter <- 1
+    NeededColumns <- NULL 
+    for (x in ColumnsNames) {
+        if(grepl("mean",x)  ){
+            NeededColumns<- c(NeededColumns,counter)
+        }
+        counter <- counter + 1
+    }
+    counter <- 1
+    for (x in ColumnsNames) {
+        if( grepl("std",x) ){
+            NeededColumns<- c(NeededColumns,counter)
+        }
+        counter <- counter + 1
+    }
+
+
+
+```
+
+### Subsetting the required columns
+
+* Here we subset only the columns we need with the index we have got from the previous Loob
+
+```{r eval=FALSE}
+
+     X_train<- X_train[,NeededColumns] ##subsetting data
+    X_test <- X_test[,NeededColumns]  ##subsetting data
+    ColumnsNames<- ColumnsNames[NeededColumns] ##subsetting Columns Names
+    merged_train <- cbind(Subject_Train,Y_train,X_train) ##merging the file Subject_Train with X_train with Y_train
+    merged_test <- cbind(Subject_Test,Y_test,X_test) ##merging the file Subject_test with X_test with Y_test
+    merged_TT <- rbind(merged_train,merged_test) ## here we merge Test data with train data
+    ColumnsNames <- append(c("Subject","ActivityNumber"),ColumnsNames) 
+    colnames(merged_TT) <- ColumnsNames   ## Naming columns
+
+```
+
+### Referencing Activity Number to it's Name
+
+* Here we started to replace every Activity Number with Activity name putting the new data in Activity
+
+```{r eval=FALSE}
+
+    ActivityName<- NULL
+    counter <- 1
+    for(x in merged_TT[,2]){
+        if(x==1)
+            ActivityName <- c(ActivityName,"WALKING")
+        else if(x==2)
+            ActivityName <- c(ActivityName,"WALKING_UPSTAIRS")
+        else if(x==3)
+            ActivityName <- c(ActivityName,"WALKING_DOWNSTAIRS")
+        else if(x==4)
+            ActivityName <- c(ActivityName,"SITTING")
+        else if(x==5)
+            ActivityName <- c(ActivityName,"STANDING")
+        else if(x==6)
+            ActivityName <- c(ActivityName,"LAYING")
+        else{
+            break("label out of order")
+        }
+        counter <- counter + 1
+    }
+
+
+```
+
+### Getting the mean for every activity and every subject
+
+* Here we subset the second raw of the activity number
+and replace it with the activity name that we got
+from the previous loob and stored in variable Activity
+* At the aggregate function we are getting the mean for every Activity for every subject
+
+```{r eval=FALSE}
+
+    merged_TT <- cbind(merged_TT[1:2],ActivityName,merged_TT[3:81])
+    FinalData <- aggregate(merged_TT[4:82],list(Subject = merged_TT$Subject,ActivityName=merged_TT$ActivityName,ActivityNumber=merged_TT$ActivityNumber),mean)
+    FinalData <- arrange(FinalData,Subject,ActivityNumber)
+
+```
+
+
+### Giving variables Descriptive Names
+
+* Here we will give variables decriptive names and at the last step we write the data in .txt file
+
+
+```{r eval=FALSE}
+
+    names(FinalData)<-gsub("std()", "SD", names(FinalData))
+    names(FinalData)<-gsub("mean()", "MEAN", names(FinalData))
+    names(FinalData)<-gsub("^t", "Time", names(FinalData))
+    names(FinalData)<-gsub("^f", "Frequency", names(FinalData))
+    names(FinalData)<-gsub("Acc", "Accelerometer", names(FinalData))
+    names(FinalData)<-gsub("Gyro", "Gyroscope", names(FinalData))
+    names(FinalData)<-gsub("Mag", "Magnitude", names(FinalData))
+    names(FinalData)<-gsub("BodyBody", "Body", names(FinalData))
+    write.table(FinalData,"~/run_analysis.txt")
+
+```
+
+## Outputs produced
+* Tidy dataset file "TidyDataSamsungGalaxy.txt" file , and will be saved to the default working directory
+
+
+
+

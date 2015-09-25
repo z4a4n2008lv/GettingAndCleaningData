@@ -24,6 +24,14 @@ The dataset includes the following files:
 - 'run_analysis.html'
 - 'run_analysis.r'
 
+Steps to reproduce this project
+===============================
+1. Open the R script run_analysis.r using RStudion.
+2. Call the function run_analysis() and provide it the path for the folder "UCI HAR Dataset" or you can put the folder in your defualt working directory and it will reach it directly (Note: Default Directory works only with Linux users)
+3. Optional for Mac/Windows Users
+   + Open the R script run_analysis.r using a text editor.
+   + edit the argument for "run_analysis()" function with the folder path of the "UCI HAR Dataset" folder
+
 
 Description
 ========================================
